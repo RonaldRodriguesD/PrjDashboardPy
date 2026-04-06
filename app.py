@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.set_config_config(page_title="Netflix Data Mining - Fatec", layout="wide")
+st.set_page_config(page_title="Netflix Data Mining - Fatec", layout="wide")
 
 @st.cache_data
 def load_and_clean_data():
