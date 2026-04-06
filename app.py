@@ -4,7 +4,7 @@ import pandas as pd
 # Configuraçoes da página
 st.set_page_config(page_title="Dashboard Netflix - Fatec", layout="wide")
 st.title("📊 Análise de Dados Netflix")
-st.markdown("Dashboard desenvolvido para a disciplina de Mineração de Dados.")
+st.markdown("Dashboard desenvolvido por Ronald R. Dantas, para a disciplina de Mineração de Dados.")
 
 # 1 - Carregar os dados
 url = 'https://raw.githubusercontent.com/profzappa/profGit/refs/heads/master/netflix_titles.csv'
