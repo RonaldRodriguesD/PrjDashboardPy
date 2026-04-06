@@ -1,39 +1,56 @@
 import streamlit as st
 import pandas as pd
 
-# Configuraçoes da página
-st.set_page_config(page_title="Dashboard Netflix - Fatec", layout="wide")
-st.title("📊 Análise de Dados Netflix")
-st.markdown("Dashboard desenvolvido por Ronald R. Dantas, para a disciplina de Mineração de Dados.")
+st.set_config_config(page_title="Netflix Data Mining - Fatec", layout="wide")
 
-# 1 - Carregar os dados
-url = 'https://raw.githubusercontent.com/profzappa/profGit/refs/heads/master/netflix_titles.csv'
+@st.cache_data
+def load_and_clean_data():
+    # 1. Lendo a base
+    url = 'https://raw.githubusercontent.com/profzappa/profGit/refs/heads/master/netflix_titles.csv'
+    df = pd.read_csv(url)
 
-@st.cache_data # Cache para não baixar o arquivo novamente
-def load_data():
-    data = pd.read_csv(url)
-    data['type'] = data['type'].replace({'Movie': 'Filme', 'TV Show': 'Série'})
-    return data
+    # 2. Traduzir os nomes das colunas
+    colunas_traduzidas = {
+        'show_id': 'ID', 'type': 'Tipo', 'title': 'Título',
+        'director': 'Diretor', 'cast': 'Elenco', 'country': 'País',
+        'date_added': 'Data de Adição', 'release_year': 'Ano de Lançamento',
+        'rating': 'Classificação', 'duration': 'Duração',
+        'listed_in': 'Gêneros', 'description': 'Descrição'
+    }
+    df.rename(columns=colunas_traduzidas, inplace=True)
 
-df = load_data()
+    # 3. Traduzir categorias
+    df['Tipo'] = df['Tipo'].replace({'Movie': 'Filme', 'TV Show': 'Série'})
+    
+    # 4. Tratar valores nulos
+    df['País'] = df['País'].fillna('Não Identificado')
+    df['Diretor'] = df['Diretor'].fillna('Ninguém listado')
+    
+    return df
 
-# 2 - Sidebar / Filtros
-st.sidebar.header("Filtros")
-tipo_filtro = st.sidebar.multiselect("Selecione o Tipo:", options=df['type'].unique(), default=df['type'].unique())
-df_filtrado = df[df['type'].isin(tipo_filtro)]
+# Carregando os dados já tratados
+df = load_and_clean_data()
 
-# 3 - Layout do Dashboard
-col1, col2, col3 = st.columns(3)
-col1.metric("Total de Títulos", len(df_filtrado))
-col2.metric("País Principal", df_filtrado['country'].mode()[0])
-col3.metric("Ano mais comum", int(df_filtrado['release_year'].mode()[0]))
+st.title("📊 Análise Exploratória: Netflix")
+st.markdown(f"**Cientista de Dados:** {st.sidebar.text_input('Nome do Aluno', 'Ronald R. Dantas')}")
 
-# 4 - Gráficos
-st.subheader("Distribuição por Tipo")
-st.bar_chart(df_filtrado['type'].value_counts())
-st.subheader("Top 10 Países com mais produções")
-st.bar_chart(df_filtrado['country'].value_counts().head(10))
+# Filtro lateral por Tipo
+tipos_selecionados = st.sidebar.multiselect(
+    "Filtrar por Tipo:", 
+    options=df['Tipo'].unique(), 
+    default=df['Tipo'].unique()
+)
+df_filtrado = df[df['Tipo'].isin(tipos_selecionados)]
 
-# 5 - Tabela de Dados
-if st.checkbox("Mostrar base de dados"):
-    st.write(df_filtrado)
+# Exibindo os 10 gêneros mais recorrentes
+st.subheader("Top 10 Gêneros Mais Recorrentes")
+top_generos = df_filtrado['Gêneros'].value_counts().head(10)
+st.bar_chart(top_generos)
+
+# Exibindo os 10 países
+st.subheader("Top 10 Países na Base")
+st.write(df_filtrado['País'].value_counts().head(10))
+
+# Estatísticas Descritivas
+if st.checkbox("Ver Estatísticas Descritivas"):
+    st.write(df_filtrado.describe())
